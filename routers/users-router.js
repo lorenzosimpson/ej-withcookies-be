@@ -3,6 +3,7 @@ const Users = require('../data/helpers/users-helpers');
 const Trips = require('../data/helpers/trips-helpers');
 const bcrypt = require('bcryptjs');
 const validateBody = require('../middleware/validate-req-body');
+const privateInfo = require('../middleware/private-info');
 
 router.get('/', async (req, res) => {
     try {
@@ -13,6 +14,7 @@ router.get('/', async (req, res) => {
                 let id = arr[x].id;
                 new_arr[x] = arr[x];
                 new_arr[x].trips = await cb(id)
+                delete new_arr[x].password;
             }
             return res.status(200).json(new_arr)
         }
@@ -23,10 +25,11 @@ router.get('/', async (req, res) => {
     }
 })
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', privateInfo, async (req, res) => {
     const {id} = req.params;
     try {
         const user = await Users.findById(id)
+        delete user.password
         res.status(200).json(user)
     } catch(err) {
         console.log(err)
@@ -42,7 +45,8 @@ router.post('/register', validateBody, async (req, res) => {
             
         const [added] = await Users.insert(user)
         const newUser = await Users.findById(added)
-        req.session.username = newUser.username // return cookie
+        req.session.username = newUser.username; // return cookie
+        req.session.id = newUser.id;
         delete newUser.password
         res.status(200).json(newUser)
     
@@ -58,7 +62,9 @@ router.post('/login', validateBody, async (req, res) => {
         let existing = await Users.findByUsername(user.username)
         if (existing && bcrypt.compareSync(user.password, existing.password)) {
             req.session.username = user.username; // return cookie
-            res.status(200).json({ message: `Welcome, ${existing.username}`})
+            req.session.user_id = existing.id;
+            console.log(req.session)
+            res.status(200).json({ message: `Welcome, ${existing.username}`, id: existing.id})
         } else {
             res.status(401).json({ error: 'Please check credentials and try again'})
         }
