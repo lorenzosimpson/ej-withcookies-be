@@ -46,7 +46,7 @@ router.post('/register', validateBody, async (req, res) => {
         const [added] = await Users.insert(user)
         const newUser = await Users.findById(added)
         req.session.username = newUser.username; // return cookie
-        req.session.id = newUser.id;
+        req.session.user_id = newUser.id;
         delete newUser.password
         res.status(200).json(newUser)
     
@@ -63,7 +63,7 @@ router.post('/login', validateBody, async (req, res) => {
         if (existing && bcrypt.compareSync(user.password, existing.password)) {
             req.session.username = user.username; // return cookie
             req.session.user_id = existing.id;
-            console.log(req.session)
+          
             res.status(200).json({ message: `Welcome, ${existing.username}`, id: existing.id})
         } else {
             res.status(401).json({ error: 'Please check credentials and try again'})
