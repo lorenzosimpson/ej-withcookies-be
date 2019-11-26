@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 // create user
-router.post('/', async (req, res) => {
+router.post('/register', async (req, res) => {
     let user = req.body;
     try {
         const hash = await bcrypt.hash(user.password, 8)
@@ -38,6 +38,23 @@ router.post('/', async (req, res) => {
     } catch(err) {
         console.log(err)
         res.status(500).json({error: 'could not add user'})
+    }
+})
+
+router.post('/login', async (req, res) => {
+    let user = req.body;
+    try {
+        let existing = await Users.findByUsername(user.username)
+        if (existing && bcrypt.compareSync(user.password, existing.password)) {
+            req.session.username = user.username;
+            res.status(200).json({ message: `Welcome, ${existing.username}`})
+        } else {
+            res.status(401).json({ error: 'Please check credentials and try again'})
+        }
+
+    } catch(err) {
+        console.log(err)
+        res.status(500).json({error: 'could not log in'})
     }
 })
 
