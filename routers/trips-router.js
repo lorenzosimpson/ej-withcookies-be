@@ -1,6 +1,8 @@
 const Trips = require('../data/helpers/trips-helpers');
 const router = require('express').Router();
-const withCookie = require('../middleware/withCookie')
+const withCookie = require('../middleware/withCookie');
+const privatePost = require('../middleware/private-POST');
+const privatePut = require('../middleware/private-PUT');
 
 router.get('/', withCookie, async (req, res) => {
     try {
@@ -27,7 +29,7 @@ router.get('/:id', async (req, res) => {
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', privatePost, async (req, res) => {
     let trip = req.body;
     try {
         const [added] = await Trips.insert(trip)
@@ -40,7 +42,7 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', privatePut,async (req, res) => {
     let {id} = req.params;
     let changes = req.body;
     try {
@@ -56,7 +58,7 @@ router.put('/:id', async (req, res) => {
     }
 })
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', privatePut,async (req, res) => {
     let {id} = req.params;
     try {
         const deleted = await Trips.remove(id)
