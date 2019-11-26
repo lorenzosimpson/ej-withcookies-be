@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const Users = require('../data/helpers/users-helpers');
+const bcrypt = require('bcryptjs');
 
 router.get('/', async (req, res) => {
     try {
@@ -21,20 +22,25 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({error: 'could not get user'})
     }
 })
-
+// create user
 router.post('/', async (req, res) => {
-    const user = req.body;
-    console.log(user)
+    let user = req.body;
     try {
+        const hash = await bcrypt.hash(user.password, 8)
+            user.password = hash
+            
         const [added] = await Users.insert(user)
         const newUser = await Users.findById(added)
+        req.session.username = newUser.username
+        delete newUser.password
         res.status(200).json(newUser)
-        console.log(added)
-        console.log(newUser)
+    
     } catch(err) {
         console.log(err)
         res.status(500).json({error: 'could not add user'})
     }
 })
+
+
 
 module.exports = router;
