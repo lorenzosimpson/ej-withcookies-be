@@ -20,14 +20,14 @@ function findByUserId(user_id) {
     return db('trips').where({ user_id })
 }
 
-function insert() {
-    
+function insert(trip) {
+    return db('trips').insert(trip)
 }
 
-function update() {
-    
+function update(id, changes) {
+    return db('trips').update(changes).where({id})
 }
 
-function remove() {
-    
+function remove(id) {
+    return db('trips').del().where({id})
 }
