@@ -39,14 +39,9 @@ router.get('/:id', privateInfo, async (req, res) => {
 // create user
 router.post('/register', validateBody, async (req, res) => {
     let user = req.body;
-    try {
-        const hash = await bcrypt.hash(user.password, 8)
-            user.password = hash
-            
+    try {  
         const [added] = await Users.insert(user)
         const newUser = await Users.findById(added)
-        req.session.username = newUser.username; // return cookie
-        req.session.user_id = newUser.id;
         delete newUser.password
         res.status(200).json(newUser)
     
@@ -60,14 +55,7 @@ router.post('/login', validateBody, async (req, res) => {
     let user = req.body;
     try {
         let existing = await Users.findByUsername(user.username)
-        if (existing && bcrypt.compareSync(user.password, existing.password)) {
-            req.session.username = user.username; // return cookie
-            req.session.user_id = existing.id;
-          
-            res.status(200).json({ message: `Welcome, ${existing.username}`, id: existing.id})
-        } else {
-            res.status(401).json({ error: 'Please check credentials and try again'})
-        }
+        res.status(200).json({ message: `Welcome, ${existing.username}`, id: existing.id})
 
     } catch(err) {
         console.log(err)
